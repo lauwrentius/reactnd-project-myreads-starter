@@ -12,16 +12,9 @@ class Book extends Component {
   state = {
     selected: false
   }
-  onShelfChange(evt){
-    //const { book, onShelfChange } = this.props
-
-    console.log("BOOK", evt)
-    this.prop.onShelfChange(this.prop.book, evt)
-    //onShelfChange(book, evt)
-  }
 
   render() {
-    const { book } = this.props
+    const { book, onShelfChange } = this.props
 
     return (
       <div className="book">
@@ -32,7 +25,7 @@ class Book extends Component {
             }}>
           </div>
           <SelectShelf
-            onShelfChange={this.onShelfChange}
+            onShelfChange={onShelfChange}
             val={book.shelf}>
             </SelectShelf>
         </div>
@@ -47,9 +40,3 @@ class Book extends Component {
   }
 }
 export default Book;
-/*
-<!option value="none" disabled>Move to...</option>
-<option value="currentlyReading">Currently Reading</option>
-<option value="wantToRead">Want to Read</option>
-<option value="read">Read</option>
-<option value="none">None</option>*/

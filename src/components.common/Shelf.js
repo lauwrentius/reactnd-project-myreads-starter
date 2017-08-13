@@ -5,48 +5,66 @@ import SelectShelf from './SelectShelf'
 import Book from './Book'
 
 class Shelf extends Component {
+  state = {
+    bookSelected: []
+  }
+
   static propTypes = {
       id: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
-      books: PropTypes.array.isRequired
+      books: PropTypes.array.isRequired,
+      onShelfChange:  PropTypes.func
   }
 
-  onBookShelfChange(evt, book){
-    console.log("SHELF", evt, book)
+  componentWillReceiveProps = (nextProps, nextState) => {
+    if( nextProps.books.length !== this.state.bookSelected.length){
+      this.setState({
+        bookSelected: new Array(nextProps.books.length).fill(false)
+      })
+    }
   }
+
+  handleInputChange = (i, evt) => {
+    console.log( evt, i )
+    let bookSelected = this.state.bookSelected.slice()
+    bookSelected[i] = !bookSelected[i]
+    this.setState({bookSelected})
+  }
+  onBatchShelfChange = (evt) => {
+    console.log(evt, this.props)
+    var books = this.props.books.filter(
+      (book,i) => this.state.bookSelected[i] )
+
+    this.props.onShelfChange(books, evt)
+  }
+
   render(){
-    //console.log( this.props)
-    /*
-    <option value="none" disabled></option>
-    <option selected={} value="currentlyReading"></option>
-    <option value="wantToRead"></option>
-    <option value="read">Read</option>
-    <option defaultValue value="none">None</option>*/
-
-    let bookFilter
-    const { id, title, books } = this.props
-    bookFilter = books.filter(book => book.shelf === id)
+    const { id, title, books, onShelfChange } = this.props
 
     return(
       <div className="bookshelf">
         <h2 className="bookshelf-title">
           {title}
           <span className="bookshelf-select">
-          /*  <SelectShelf val={id}>
-            </SelectShelf>*/
+            <SelectShelf
+              val={id}
+              onShelfChange={this.onBatchShelfChange}>
+            </SelectShelf>
           </span>
         </h2>
         <div className="bookshelf-books">
           <ol className="books-grid">
-            {bookFilter.map( book =>(
+            {books.map( (book,i) =>(
               <li key={book.id}>
                 <label>
                   <input
                     className="shelf-checkbox"
                     type="checkbox"
                     name="chk_group"
-                    value="value1" />
-                  <Book onShelfChange={this.onBookShelfChange}
+                    value="false"
+                    checked={this.state.bookSelected[i]}
+                    onChange={this.handleInputChange.bind(null, i)} />
+                  <Book onShelfChange={onShelfChange.bind(null, [book])}
                     book={book}></Book>
                 </label>
               </li>

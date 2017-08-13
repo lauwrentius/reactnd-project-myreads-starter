@@ -1,17 +1,19 @@
 import React from 'react'
+import { Link, Route } from 'react-router-dom'
+
 import * as BooksAPI from './BooksAPI'
 import './App.css'
-
 import Shelf from './components.common/Shelf'
-//import Book from './components.common/Book'
 
 class BooksApp extends React.Component {
+
+
   state = {
-    shelves: [
-      {id: "currentlyReading", title: "Currently Reading", books: []},
-      {id: "wantToRead", title: "Want to Read", books: []},
-      {id: "read", title: "Read", books: []},
-    ]
+    shelvesInfo: [
+      {id: "currentlyReading", title: "Currently Reading"},
+      {id: "wantToRead", title: "Want to Read"},
+      {id: "read", title: "Read"}],
+    books: []
     /**
      * TODO: Instead of using this state variable to keep track of which page
      * we're on, use the URL in the browser's address bar. This will ensure that
@@ -26,34 +28,71 @@ class BooksApp extends React.Component {
   componentDidMount(){
     //BooksAPI.update({id:"nggnmAEACAAJ"}, "read").then(res=>console.log("RES1",res))
     BooksAPI.getAll().then(res => {
-      let shelves = this.state.shelves.slice(0)
+      //let shelves = this.state.shelves.slice(0)
+      let books = res
+      console.log(res)
 
-      shelves.forEach( shelf =>
-        shelf.books = res.filter(res => (res.shelf === shelf.id)))
+      /*shelves.forEach( shelf =>
+        shelf.books = res.filter(res => (res.shelf === shelf.id)))*/
 
-      this.setState({shelves})
+      this.setState({books})
     })
   }
+  onMoveBooks = (booksMove, type) => {
+    console.log( booksMove, type )
+    let books = this.state.books.map( book => {
+      let tmp = booksMove.find(obj => book === obj)
 
+      if(tmp){
+        tmp.shelf = type
+        return tmp
+      }
+      return book
+    })
+    this.setState({books})
+    books.forEach( book => {
+      BooksAPI.update({id:book.id}, book.shelf)
+        .then(() => {})
+        .catch( (msg) => alert(msg))
+    })
+  }
   render() {
+    const { shelvesInfo, books } = this.state
     return (
       <div className="app">
-        <div className="list-books">
-          <div className="list-books-title">
-            <h1>MyReads</h1>
+        <Route exact path='/' render={() => (
+          <div className="list-books">
+            <div className="list-books-title">
+              <h1>MyReads</h1>
+            </div>
+            {shelvesInfo.map(shelf =>(
+              <Shelf
+                key={shelf.id}
+                id={shelf.id}
+                title={shelf.title}
+                books={books.filter(book => book.shelf === shelf.id)}
+                onShelfChange={this.onMoveBooks}>
+              </Shelf>
+            ))}
+            <div className="open-search">
+              <Link to='/search'>Add a book</Link>
+            </div>
           </div>
-        </div>
-        {this.state.shelves.map(shelf =>(
-          <Shelf
-            key={shelf.id}
-            id={shelf.id}
-            title={shelf.title}
-            books={shelf.books}>
-          </Shelf>
-        ))}
-        <div className="open-search">
-          <a onClick={() => this.setState({ showSearchPage: true })}>Add a book</a>
-        </div>
+        )}/>
+
+        <Route exact path='/search' render={() => (
+          <div className="search-books">
+            <div className="search-books-bar">
+              <a className="close-search" onClick={() => this.setState({ showSearchPage: false })}>Close</a>
+              <div className="search-books-input-wrapper">
+                <input type="text" placeholder="Search by title or author"/>
+              </div>
+            </div>
+            <div className="search-books-results">
+              <ol className="books-grid"></ol>
+            </div>
+          </div>
+        )}/>
       </div>
     )
     /*return (
