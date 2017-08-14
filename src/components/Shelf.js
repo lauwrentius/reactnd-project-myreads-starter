@@ -10,10 +10,10 @@ class Shelf extends Component {
   }
 
   static propTypes = {
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    books: PropTypes.array.isRequired,
-    onShelfChange:  PropTypes.func.isRequired
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      books: PropTypes.array.isRequired,
+      onShelfChange:  PropTypes.func
   }
 
   componentWillReceiveProps = (nextProps, nextState) => {

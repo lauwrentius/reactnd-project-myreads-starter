@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Link, Route } from 'react-router-dom'
 
 import * as BooksAPI from './BooksAPI'
 import './App.css'
-import Shelf from './components.common/Shelf'
+import Shelf from './components/Shelf'
+import SearchBook from './components/SearchBook'
 
-class BooksApp extends React.Component {
+class BooksApp extends Component {
 
 
   state = {
@@ -13,7 +14,8 @@ class BooksApp extends React.Component {
       {id: "currentlyReading", title: "Currently Reading"},
       {id: "wantToRead", title: "Want to Read"},
       {id: "read", title: "Read"}],
-    books: []
+    books: [],
+    bookResults: []
     /**
      * TODO: Instead of using this state variable to keep track of which page
      * we're on, use the URL in the browser's address bar. This will ensure that
@@ -56,8 +58,14 @@ class BooksApp extends React.Component {
         .catch( (msg) => alert(msg))
     })
   }
+
+  onBookSearch = (str) => {
+    console.log(str)
+
+  }
+
   render() {
-    const { shelvesInfo, books } = this.state
+    const { shelvesInfo, books, bookResults } = this.state
     return (
       <div className="app">
         <Route exact path='/' render={() => (
@@ -82,15 +90,15 @@ class BooksApp extends React.Component {
 
         <Route exact path='/search' render={() => (
           <div className="search-books">
-            <div className="search-books-bar">
-              <a className="close-search" onClick={() => this.setState({ showSearchPage: false })}>Close</a>
-              <div className="search-books-input-wrapper">
-                <input type="text" placeholder="Search by title or author"/>
-              </div>
-            </div>
-            <div className="search-books-results">
+            <SearchBook onBookSearch={this.onBookSearch}></SearchBook>
+            <Shelf
+              id="none"
+              title="Search Result"
+              books={bookResults}>
+            </Shelf>
+            {/*}<div className="search-books-results">
               <ol className="books-grid"></ol>
-            </div>
+            </div>*/}
           </div>
         )}/>
       </div>
