@@ -1,37 +1,45 @@
 import React, { Component } from 'react'
-import { Link, Route, Router } from 'react-router-dom'
-import createBrowserHistory from 'history/createBrowserHistory'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 
 class SearchBook extends Component {
   static propTypes = {
+    searchVal: PropTypes.string.isRequired,
     onBookSearch: PropTypes.func.isRequired
   }
   state = {
-    searchVal: ""
+    inputVal: ""
   }
+  
+  componentWillMount(){
+      this.setState({inputVal: this.props.searchVal})
+  }
+  componentWillReceiveProps(nextProps){
+    if(this.state.inputVal !== nextProps.searchVal)
+      this.setState({inputVal: nextProps.searchVal})
+  }
+
   handleChange = (evt) => {
-    this.setState({searchVal: evt.target.value});
+    this.setState({inputVal: evt.target.value});
   }
   onSubmit = (evt) => {
     evt.preventDefault();
-    console.log("SUBMIT")
-    this.props.onBookSearch(this.state.searchVal)
+    this.props.onBookSearch(this.state.inputVal)
   }
-  history = createBrowserHistory()
+
   render() {
     return (
       <div className="search-books-bar">
         <Link to='/' className="close-search">Close</Link>
-        <form onSubmit={this.onSubmit}>
-          <div className="search-books-input-wrapper">
-            <input type="text"
-              value={this.state.searchVal}
-              onChange={this.handleChange}
-              placeholder="Search by title or author"/>
-          </div>
+        <form onSubmit={this.onSubmit} className="search-books-input-wrapper">
+          <input type="text"
+            value={this.state.inputVal}
+            onChange={this.handleChange}
+            placeholder="Search by title or author"/>
         </form>
+        <div>{JSON.stringify(this.state)}</div>
+        <div>{JSON.stringify(this.props)}</div>
       </div>
     )
   }

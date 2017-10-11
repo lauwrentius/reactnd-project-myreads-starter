@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Link, Route } from 'react-router-dom'
+import { Link, Route, withRouter } from 'react-router-dom'
+import update from 'immutability-helper'
 
 import * as BooksAPI from './BooksAPI'
 import './App.css'
@@ -15,7 +16,8 @@ class BooksApp extends Component {
       {id: "wantToRead", title: "Want to Read"},
       {id: "read", title: "Read"}],
     books: [],
-    bookResults: []
+    bookResults: [],
+    searchVal : ""
     /**
      * TODO: Instead of using this state variable to keep track of which page
      * we're on, use the URL in the browser's address bar. This will ensure that
@@ -28,44 +30,68 @@ class BooksApp extends Component {
 
 
   componentDidMount(){
+    const { location } = this.props
+
     //BooksAPI.update({id:"nggnmAEACAAJ"}, "read").then(res=>console.log("RES1",res))
+    console.log(location,'', this.props.match)
+
+
     BooksAPI.getAll().then(res => {
       //let shelves = this.state.shelves.slice(0)
       let books = res
       console.log(res)
 
-      /*shelves.forEach( shelf =>
-        shelf.books = res.filter(res => (res.shelf === shelf.id)))*/
-
       this.setState({books})
+
+      if(location.pathname === "/search" && location.search !== ""){
+          let searchVal = location.search.substr(1)
+          this.setState({searchVal})
+          this.searchBooks( location.search.substr(1) )
+      }
+
     })
   }
-  onMoveBooks = (booksMove, type) => {
-    console.log( booksMove, type )
-    let books = this.state.books.map( book => {
-      let tmp = booksMove.find(obj => book === obj)
+  onAddBooks = (booksAdd, type) => {
 
-      if(tmp){
-        tmp.shelf = type
-        return tmp
-      }
+    booksAdd.forEach( book => book.shelf = type)
+
+    let bookResults = this.state.bookResults.filter( book =>
+      booksAdd.find( e => e.id === book.id) === undefined )
+
+    let books = this.state.books.concat(booksAdd)
+
+    this.setState({books, bookResults})
+  }
+
+  onMoveBooks = (booksMove, type) => {
+
+    let books = this.state.books.map( book => {
+      if( booksMove.find( e=> e.id === book.id) !== undefined)
+        return Object.assign({}, book, {shelf: type})
       return book
     })
+
     this.setState({books})
-    books.forEach( book => {
-      BooksAPI.update({id:book.id}, book.shelf)
-        .then(() => {})
-        .catch( (msg) => alert(msg))
-    })
+  }
+  onBookSearch = (str) => {
+    let searchVal = str
+    this.setState({searchVal: str})
+    this.props.history.push('/search?'+str)
+    this.searchBooks(str)
   }
 
-  onBookSearch = (str) => {
-    console.log(str)
-
+  searchBooks = (str) => {
+    console.log("SEARCH", str)
+    BooksAPI.search(str)
+      .then(res => {
+        let bookResults = res.filter(
+          book => !this.state.books.find( e => e.id === book.id))
+        this.setState({bookResults})
+      })
   }
 
   render() {
-    const { shelvesInfo, books, bookResults } = this.state
+    const { shelvesInfo, books, bookResults, searchVal } = this.state
     return (
       <div className="app">
         <Route exact path='/' render={() => (
@@ -83,22 +109,22 @@ class BooksApp extends Component {
               </Shelf>
             ))}
             <div className="open-search">
-              <Link to='/search'>Add a book</Link>
+              <Link to={{pathname: '/search', search: searchVal }}>Add a book</Link>
             </div>
           </div>
         )}/>
 
-        <Route exact path='/search' render={() => (
+        <Route path='/search' render={() => (
           <div className="search-books">
-            <SearchBook onBookSearch={this.onBookSearch}></SearchBook>
-            <Shelf
-              id="none"
-              title="Search Result"
-              books={bookResults}>
-            </Shelf>
-            {/*}<div className="search-books-results">
-              <ol className="books-grid"></ol>
-            </div>*/}
+            <SearchBook searchVal={searchVal} onBookSearch={this.onBookSearch}></SearchBook>
+            <div className="search-books-results">
+              <Shelf
+                id="none"
+                title="Search Result"
+                books={bookResults}
+                onShelfChange={this.onAddBooks}>
+              </Shelf>
+            </div>
           </div>
         )}/>
       </div>
@@ -294,4 +320,4 @@ class BooksApp extends Component {
   }
 }
 
-export default BooksApp
+export default withRouter(BooksApp)

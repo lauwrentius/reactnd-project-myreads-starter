@@ -26,7 +26,7 @@ class Book extends Component {
           </div>
           <SelectShelf
             onShelfChange={onShelfChange}
-            val={(book.shelf!==undefined)?book.shelf:"none"}>
+            val={(book.shelf!=undefined)?book.shelf:"none"}>
             </SelectShelf>
         </div>
         <div className="book-title">{book.title}</div>
